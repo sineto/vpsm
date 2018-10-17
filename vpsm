@@ -367,6 +367,13 @@ search_result () {
 }
 
 case "$cmd" in
+  bootstrap|bb)
+    # cd $VOID_PKGS
+    msg -n "Create the bootstrap environment: "
+    wrapcommand ./xbps-src binary-bootstrap
+    echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+  ;;
+
   search|s)
     msg -n "Searching for: $* "
     wrapcommand search_result "$@"
