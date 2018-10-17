@@ -360,7 +360,7 @@ search_result () {
     desc=$(show_desc $pkg)
     # inststr=$(check_binpkgs "$pkg")
     # res+=("\n$inststr $pkg$snum - $desc")
-    res+=("$pkg$snum - $desc")
+    res+=("\n$pkg$snum - $desc")
   done
 
   echo -e "${res[@]}"
@@ -369,12 +369,29 @@ search_result () {
 case "$cmd" in
   search|s)
     msg -n "Searching for: $* "
-    wrapcommand search_result $*
+    wrapcommand search_result "$@"
   ;;
 
-  # info|in)
-  #   wrapcommand xbps-query -v -R "$@"
-  # ;;
+  show|sw)
+    cd $VOID_PKGS
+    msg -n "Show information for: $* "
+    wrapcommand ./xbps-src show "$@"
+  ;;
+
+  install|i)
+    cd $VOID_PKGS
+    if (($# < 1)); then
+      rmsg 255 "ERROR: install: argument missing, try --help."
+      exit 1
+    fi
+
+    msg -n "Building packages: $* "
+    echo ''
+    ./xbps-src pkg $*
+
+    msg -n "Installing packages: $* "
+    wrapcommand sudo xbps-install -S --repository=$HOME/.void-packages/hostdir/binpkgs/nonfree "$@"
+  ;;
 
   # filelist|fl|listfiles)
   #   wrapcommand xbps-query -v -R -f "$@"
