@@ -313,18 +313,63 @@ if [[ $arg =~ --.* ]]; then
 fi
 shift
 
+longest_word () {
+  longest=""
+  for word in ${pkgs[@]}
+  do
+    if [ ${#word} -gt ${#longest} ] ; then
+      longest=$word
+    fi
+  done
+
+  echo $longest
+}
+
+
+whitespaces() {
+  i=0
+  space=" "
+  while [[ "$i" != $1 ]]
+  do
+    space="$space "
+    ((i+=1))
+  done
+  echo "$space"
+}
+
+show_desc () {
+  cd $VOID_PKGS
+  ./xbps-src show "$1" | grep short_desc | awk '{$1=""; print $0}' | awk '{$1=$1};1'
+}
+
+check_binpkgs () {
+  s=$(xbps-query --repository=$HOME/.void-packages/hostdir/binpkgs/nonfree -Rs $1 | awk '{print $1}')
+  echo "$s"
+}
+
+search_result () {
+  declare -a res=()
+
+  pkgs=$(ls $(echo "$VOID_PKGS/srcpkgs") | fzf --filter=$1 -e)
+  lword=$(longest_word $pkgs)
+
+  for pkg in ${pkgs[@]}
+  do
+    qs=$((${#lword} - ${#pkg}))
+    snum=$(whitespaces $qs)
+    desc=$(show_desc $pkg)
+    # inststr=$(check_binpkgs "$pkg")
+    # res+=("\n$inststr $pkg$snum - $desc")
+    res+=("$pkg$snum - $desc")
+  done
+
+  echo -e "${res[@]}"
+}
+
 case "$cmd" in
   search|s)
     msg -n "Searching for: $* "
-    echo ''
-    pkgs=$(ls $(echo "$VOID_PKGS/srcpkgs") | fzf --filter=$*)
-    echo "$pkgs"
-    # echo "$pkg"
-    # wrapcommand ls "$pkg"
-    # wrapcommand ls $(echo "$VOID_PKGS/srcpkgs") | fzf --query=$*
-    # wrapcommand xbps-query --repository=$HOME/.void-packages/hostdir/binpkgs -Rs "$pkg"
-    # wrapcommand xbps-query --repository=$HOME/.void-packages/hostdir/binpkgs/nonfree -Rs "$pkg"
-    # wrapcommand xbps-query -v -Rs "$pkg"
+    wrapcommand search_result $*
   ;;
 
   # info|in)
@@ -345,7 +390,7 @@ case "$cmd" in
   # ;;
 
   # searchfile|sf)
-  #   msg -n 'searchfile '
+    #   msg -n 'searchfile ')
   #   wrapcommand xbps-query -v -o "*/$1"
   # ;;
 
