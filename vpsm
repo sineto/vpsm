@@ -194,14 +194,14 @@ usage () {
   echo "$progname [OPTIONS] [SUBCOMMANDS] [<ARGS>]"
   echo
   echo -n "$colorheader"
-  echo "OPTIONS: "
-  echo -n "$colorgray"
-  echo "--color=<yes|no|auto>        - Enable/Disable colorized output (default: auto)"
-  echo "--help                       - (same as: help)"
-  echo "--help-pager                 - (same as: helppager)"
-  echo "--show-translations          - Show XBPS command translations for $progname sub-commands"
-  echo "--verbose                    - Verbose mode (shows XBPS command translations during execution)"
-  echo
+  # echo "OPTIONS: "
+  # echo -n "$colorgray"
+  # echo "--color=<yes|no|auto>        - Enable/Disable colorized output (default: auto)"
+  # echo "--help                       - (same as: help)"
+  # echo "--help-pager                 - (same as: helppager)"
+  # echo "--show-translations          - Show XBPS command translations for $progname sub-commands"
+  # echo "--verbose                    - Verbose mode (shows XBPS command translations during execution)"
+  # echo
   echo -n "$colorheader"
   echo "SUBCOMMANDS: "
   echo -n "$colorgray"
@@ -221,7 +221,7 @@ usage () {
   echo "list (l)                     - Lists installed packages in <masterdir>."
   t "xbps-src list"
   echo "pull                         - Update void-packages and sources repositories."
-  "xbps-src pull"
+  t "git pull"
   # echo "sync                         - Synchronize remote repository data"
   # t "xbps-install -S"
 
