@@ -1,4 +1,5 @@
 #!/bin/bash
+cd $VOID_PKGS
 
 numcolorok=2
 numcolorfail=1
@@ -278,68 +279,87 @@ fi
 shift
 
 longest_word () {
-  longest=""
-  for word in ${pkgs[@]}
+  declare -a pkgs=$@
+  declare -i longest=0
+  for pkg in ${pkgs[@]}
   do
-    if [ ${#word} -gt ${#longest} ] ; then
-      longest=$word
+    if [ ${#pkg} -gt $longest ]; then
+      longest=${#pkg}
     fi
   done
 
   echo $longest
 }
 
-
 whitespaces() {
   i=0
   space=" "
-  while [[ "$i" != $1 ]]
+  qnt_ws=$(($1 - $2))
+
+  while [[ "$i" != $qnt_ws ]]
   do
     space="$space "
     ((i+=1))
   done
   echo "$space"
+
 }
 
 show_desc () {
-  cd $VOID_PKGS
-  ./xbps-src show "$1" | grep short_desc | awk '{$1=""; print $0}' | awk '{$1=$1};1'
+  ./xbps-src show "$1" | rg short_desc | awk '{$1=""; print $0}'
+}
+
+if_instaled () {
+  [[ "$1" != '' ]] && flag="[$colorgray*$colorreset]" || flag="[-]"
+  echo -n "$flag"
+}
+
+lsgrep_binpkgs () {
+  ls $VOID_PKGS/hostdir/* | rg $1
 }
 
 check_binpkgs () {
-  s=$(xbps-query --repository=$HOME/.void-packages/hostdir/binpkgs/nonfree -Rs $1 | awk '{print $1}')
-  echo "$s"
+  check=$(lsgrep_binpkgs "$1")
+  resul=$(if_instaled $check)
+  echo -n "$resul"
 }
 
 search_result () {
   declare -a res=()
 
-  pkgs=$(ls $(echo "$VOID_PKGS/srcpkgs") | fzf --filter=$1 -e)
-  lword=$(longest_word $pkgs)
+  pkgs=$(ls $VOID_PKGS/srcpkgs | fzf --filter=$1 -e)
+  lword=$(longest_word ${pkgs[@]})
 
   for pkg in ${pkgs[@]}
   do
-    qs=$((${#lword} - ${#pkg}))
-    snum=$(whitespaces $qs)
+    wsnum=$(whitespaces $lword ${#pkg})
     desc=$(show_desc $pkg)
-    # inststr=$(check_binpkgs "$pkg")
-    # res+=("\n$inststr $pkg$snum - $desc")
-    res+=("\n$pkg$snum - $desc")
+    inststr=$(check_binpkgs $pkg)
+    res+=("\n$inststr $pkg$wsnum-$desc")
   done
 
   echo -e "${res[@]}"
 }
 
+build_binary () {
+  ./xbps-src pkg "$@" | \
+  while read line
+  do
+    if [[ "$line" =~ Registering ]]; then
+      echo "$line" | awk '{print $NF}' | cut -d'/' -f3-4 > xpath
+    fi
+    echo "$line"
+  done
+}
+
 case "$cmd" in
   bootstrap|bb)
-    cd $VOID_PKGS
     msg -n "Create the bootstrap environment: "
-    wrapcommand ./xbps-src binary-bootstrap
     echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
+    wrapcommand ./xbps-src binary-bootstrap
   ;;
 
   bootstrap-up|bu)
-    cd $VOID_PKGS
     msg -n "Updates bootstrap packages: "
     wrapcommand ./xbps-src bootstrap-update
   ;;
@@ -350,29 +370,19 @@ case "$cmd" in
   ;;
 
   show|sw)
-    cd $VOID_PKGS
     msg -n "Show information for: $* "
     wrapcommand ./xbps-src show "$@"
   ;;
 
   install|i)
-    cd $VOID_PKGS
-
     if (($# < 1)); then
       rmsg 255 "ERROR: install: argument missing, try --help."
       exit 1
     fi
 
-    msg -n "Building package: $* "
+    msg -n "Build binary package: $* "
     echo ''
-    ./xbps-src pkg "$@" | \
-    while read line
-    do
-      if [[ "$line" =~ Registering ]]; then
-        echo "$line" | awk '{print $NF}' | cut -d'/' -f3-4 > xpath
-      fi
-      echo $line
-    done
+    build_binary "$@"
     xpath=$(cat $VOID_PKGS/xpath)
     rm -rf $VOID_PKGS/xpath &> /dev/null
 
@@ -381,13 +391,11 @@ case "$cmd" in
   ;;
 
   list|l)
-    cd $VOID_PKGS
     msg -n "Lists installed packages: "
     wrapcommand ./xbps-src list
   ;;
 
   pull)
-    cd $VOID_PKGS
     msg -n "Update repo: "
     wrapcommand git pull
   ;;
