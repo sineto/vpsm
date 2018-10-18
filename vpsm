@@ -221,7 +221,7 @@ usage () {
   echo "list (l)                     - Lists installed packages in <masterdir>."
   t "xbps-src list"
   echo "pull                         - Update void-packages and sources repositories."
-  t "xbps-src list"
+  "xbps-src pull"
   # echo "sync                         - Synchronize remote repository data"
   # t "xbps-install -S"
 
