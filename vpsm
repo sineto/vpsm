@@ -132,17 +132,17 @@ rmsg () {
 
 banner () {
   echo -n "$colorlogo"
-  echo ' __ ___ __ _ __  '
+  echo ' __ ___ __ ____ __  ';
 
-  printf " \\ V / '_ \\ '  \ "
+  printf " \ V / '_ (_-< '  \ "
   echo -n "$colorgray"
-  echo "  $progname - void package management utility for XBPS"
+  echo "  $progname - void package source management utility for XBPS-SRC"
   echo -n "$colorlogo"
-  echo -n '  \_/| .__/_|_|_|'
+  echo -n '  \_/| .__/__/_|_|_|'
   echo -n "$colorgray"
-  echo '  GitHub: https://github.com/netzverweigerer/vpm'
+  echo '  GitHub: https://github.com/sinetoami/vpsm'
   echo -n "$colorlogo"
-  echo '     |/          '
+  echo '     |/             '
   echo '     ´          '
   echo -n "$colorreset"
 }
@@ -150,7 +150,7 @@ banner () {
 version () {
   banner
   msg "$progname - Version: $version"
-  msg "Copyright (c) 2016 Armin Jenewein <a@m2m.pm> (GPLv3+)"
+  msg "Copyright (c) 2018 Sinésio Neto <sinetoami [at] gmail [dot] com> (GPLv3+)"
   msg "XBPS version: $(xbps-query -v --version | sed 's/GIT: UNSET//')"
 }
 
@@ -205,62 +205,37 @@ usage () {
   echo -n "$colorheader"
   echo "SUBCOMMANDS: "
   echo -n "$colorgray"
-  echo "sync                         - Synchronize remote repository data"
-  t "xbps-install -S"
-  echo "update (up)                  - Update the system"
-  t "xbps-install -Sduv"
-  echo "listrepos (lr)               - List configured repositories"
-  echo "repolist (rl)                - Alias for listrepos"
-  t "xbps-query -v -L"
-  echo "addrepo (ar) <ARGS>          - Add an additional repository"
-  t "xbps-install <ARGS>"
-  echo "info <pkg>                   - Show information about <package>"
-  t "xbps-query-v -R"
-  echo "filelist (fl) <pkg>          - Show file-list of <package>"
-  t "xbps-query -v -R -f"
-  echo "deps <pkg>                   - Show dependencies for <package>"
-  t "xbps-query -v -R -x"
-  echo "reverse (rv) <pkg>           - Show reverse dependendies of <package> (see man xbps-query)"
-  t "xbps-query -v -R -X"
-  echo "search (s) <name>            - Search for package by <name>"
-  t "xbps-query -v -Rs"
-  echo "searchfile (sf) <file>       - Search for package containing <file> (local)"
-  t "xbps-query -v -o \"*/$1\""
-  echo "list (ls)                    - List installed packages"
-  t "xbps-query -v -l"
-  echo "install (i) <pkg(s)>         - Install <package(s)>"
-  t "xbps-install -S"
-  echo "devinstall (di) <pkg(s)>     - Install <package> (and corresponding <package>-devel package(s))"
-  t "xbps-install -S <package> <package>-devel"
-  echo "listalternatives (la)        - List alternative candidates"
-  t "xbps-alternatives -l"
-  echo "setalternative (sa) <pkg(s)  - Set alternative for <package>"
-  t "xbps-alternatives -s"
-  echo "reconfigure (rc) <pkg>       - Re-configure installed <package>"
-  t "xbps-reconfigure -v"
-  echo "forceinstall (fi) <pkg(s)>   - Force installation of <package(s)>"
-  t "xbps-install -f"
-  echo "remove <package(s))          - Remove <package(s)> from the system"
-  t "xbps-remove -v "
-  echo "removerecursive <pkg(s)>     - Recursively remove package(s) (and its dependencies)"
-  t "xbps-remove -v -R"
-  echo "cleanup (cl)                 - Clean up cache directory"
-  t "xbps-remove -v -O"
-  echo "autoremove (ar)              - Remove orphaned packages"
-  t "xbps-remove -v -O"
-  echo "whatprovides (wp) <file>     - Search for package containing <file>"
-  t "xlocate <pkg>"
-  echo "help                         - Show usage information"
-  echo "helppager (hp)               - Show usage information (will pipe output to less/more)"
-  echo
-  echo -n "$colorheader"
-  echo "XBPS COMPATIBILITY COOLNESS:"
-  echo -n "$colorgray"
-  f=(/usr/sbin/xbps-*)
-  echo "$progname also understands all unknown XBPS sub-commands, too:"
-  echo -n "Example: "
-  selected=${f[$RANDOM % ${#f[@]}]}
-  echo "$progname ${selected##*-} <ARGS> - see also: /usr/sbin/xbps-*"
+
+  echo "show (sw)                    - Show information for the specified package."
+  t "xbps-src show"
+  echo "search (s)                   - Search for package by <name>."
+  t "xbps-src"
+  echo "bootstrap (bb)               - Install bootstrap packages from host repositories into <masterdir>."
+  t "xbps-src binary-bootstrap"
+  echo "bootstrap-up (bu)            - Updates bootstrap packages with latest versions" \
+                                       "available from registered repositories in the XBPS" \
+                                       "configuration file."
+  t "xbps-src bootstrap-update"
+  echo "install (i)                  - Build binary package for <pkgname> and all required dependencies and install."
+  t "xbps-src pkg <pkg> && xbps-install --repository=.hostdir/... <pkg>"
+  echo "list (l)                     - Lists installed packages in <masterdir>."
+  t "xbps-src list"
+  echo "pull                         - Update void-packages and sources repositories."
+  t "xbps-src list"
+  # echo "sync                         - Synchronize remote repository data"
+  # t "xbps-install -S"
+
+  # echo "help                         - Show usage information"
+  # echo "helppager (hp)               - Show usage information (will pipe output to less/more)"
+  # echo
+  # echo -n "$colorheader"
+  # echo "XBPS COMPATIBILITY COOLNESS:"
+  # echo -n "$colorgray"
+  # f=(/usr/sbin/xbps-*)
+  # echo "$progname also understands all unknown XBPS sub-commands, too:"
+  # echo -n "Example: "
+  # selected=${f[$RANDOM % ${#f[@]}]}
+  # echo "$progname ${selected##*-} <ARGS> - see also: /usr/sbin/xbps-*"
   echo
   echo -n "$colorreset"
 }
@@ -374,6 +349,12 @@ case "$cmd" in
     echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
   ;;
 
+  bootstrap-up|bu)
+    cd $VOID_PKGS
+    msg -n "Updates bootstrap packages: "
+    wrapcommand ./xbps-src bootstrap-update
+  ;;
+
   search|s)
     msg -n "Searching for: $* "
     wrapcommand search_result "$@"
@@ -386,8 +367,6 @@ case "$cmd" in
   ;;
 
   install|i)
-    set -o allexport
-
     cd $VOID_PKGS
 
     if (($# < 1)); then
@@ -406,10 +385,21 @@ case "$cmd" in
       echo $line
     done
     xpath=$(cat $VOID_PKGS/xpath)
+    rm -rf $VOID_PKGS/xpath &> /dev/null
 
     msg -n "Installing packages: $* "
     wrapcommand sudo xbps-install -S --repository=$HOME/.void-packages/hostdir/$xpath "$@"
+  ;;
 
-    rm -rf $VOID_PKGS/xpath &> /dev/null
+  list|l)
+    cd $VOID_PKGS
+    msg -n "Lists installed packages: "
+    wrapcommand ./xbps-src list
+  ;;
+
+  pull)
+    cd $VOID_PKGS
+    msg -n "Update repo: "
+    wrapcommand git pull
   ;;
 esac
