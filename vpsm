@@ -172,7 +172,7 @@ wrapcommand() {
 }
 
 usage () {
-  echo
+  # echo
   version
   echo
   echo -n "$colorheader"
@@ -191,6 +191,7 @@ usage () {
   echo "build-deps (swbd)            - Show required build dependencies for <pkgname>."
   echo "install (i)                  - Build binary package for <pkgname> and all required dependencies and install."
   echo "list (l)                     - Lists installed packages in <masterdir>."
+  echo "pkg                          - Only build binary package for <pkgname> and all required dependencies."
   echo "pull                         - Update void-packages and sources repositories."
   echo "purge-distfiles (pdistf)     - Removes all obsolete distfiles in <hostdir>/sources."
   echo "search (s)                   - Search for package by <name>."
@@ -387,7 +388,7 @@ case "$cmd" in
 
 	pkg)
 		msg -n "Build binary package for: $* "
-		wrapcommand ./xbps-src "$@"
+		wrapcommand ./xbps-src pkg "$@"
 	;;
 
   pull)
