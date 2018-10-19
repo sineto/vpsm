@@ -187,7 +187,8 @@ usage () {
   echo "bootstrap-up (bu)            - Updates bootstrap packages with latest versions" \
                                       "available from registered repositories in the XBPS" \
                                       "configuration file."
-  echo "build-deps (swbd)            - Show required build dependencies for <pkgname>.<Paste>"
+  echo "build-environment            - Configure environment to create binary packages."
+  echo "build-deps (swbd)            - Show required build dependencies for <pkgname>."
   echo "install (i)                  - Build binary package for <pkgname> and all required dependencies and install."
   echo "list (l)                     - Lists installed packages in <masterdir>."
   echo "pull                         - Update void-packages and sources repositories."
@@ -337,6 +338,27 @@ case "$cmd" in
     wrapcommand ./xbps-src bootstrap-update
   ;;
 
+	build-environment)
+		whoami=$(whoami)
+
+		msg "XBPS_CHROOT_CMD=uchroot >> etc/conf"
+		echo XBPS_CHROOT_CMD=uchroot >> etc/conf
+
+		cd /usr/bin
+		msg "chown root:xbuilder xbps-uchroot"
+		sudo chown root:xbuilder xbps-uchroot
+		msg "chmod 4750 xbps-uchroot"
+		sudo chmod 4750 xbps-uchroot
+		msg "usermod -a -G xbuilder $whoami"
+		sudo usermod -a -G xbuilder $whoami
+
+		cd $OLDPWD
+		msg "add void-linux/void-packages track repository"
+		git remote add void-linux https://github.com/void-linux/void-packages
+		msg "git pull void-linux master"
+		git pull void-linux master
+	;;
+
   build-deps|swbd)
     msg -n "Show required build dependencies for: $*"
     wrapcommand ./xbps-src show-build-deps "$@"
@@ -362,6 +384,11 @@ case "$cmd" in
     msg -n "Lists installed packages: "
     wrapcommand ./xbps-src list
   ;;
+
+	pkg)
+		msg -n "Build binary package for: $* "
+		wrapcommand ./xbps-src "$@"
+	;;
 
   pull)
     msg -n "Update repo: "
