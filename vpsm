@@ -1,4 +1,9 @@
 #!/bin/bash
+export VOID_PKGS=$HOME/.void-packages
+export VOID_SRCPKGS=$VOID_PKGS/srcpkgs
+export VOID_HOSTDIR=$VOID_PKGS/hostdir
+export VOID_BINPKGS=$VOID_HOSTDIR/binpkgs
+
 cd $VOID_PKGS
 
 numcolorok=2
@@ -144,14 +149,6 @@ version () {
   msg "XBPS version: $(xbps-query -v --version | sed 's/GIT: UNSET//')"
 }
 
-# check if we have UID 0, exit otherwise
-rootcheck () {
-  if [[ $EUID -gt 0 ]]; then
-    msg "ERROR: $progname: This operation needs super-user privileges. Exiting."
-    exit 255
-  fi
-}
-
 t () {
   if [[ -n $show_translations ]]; then
     tput setaf 242
@@ -184,50 +181,22 @@ usage () {
   echo "$progname [OPTIONS] [SUBCOMMANDS] [<ARGS>]"
   echo
   echo -n "$colorheader"
-  # echo "OPTIONS: "
-  # echo -n "$colorgray"
-  # echo "--color=<yes|no|auto>        - Enable/Disable colorized output (default: auto)"
-  # echo "--help                       - (same as: help)"
-  # echo "--help-pager                 - (same as: helppager)"
-  # echo "--show-translations          - Show XBPS command translations for $progname sub-commands"
-  # echo "--verbose                    - Verbose mode (shows XBPS command translations during execution)"
-  # echo
-  echo -n "$colorheader"
   echo "SUBCOMMANDS: "
   echo -n "$colorgray"
-
-  echo "show (sw)                    - Show information for the specified package."
-  t "xbps-src show"
-  echo "search (s)                   - Search for package by <name>."
-  t "xbps-src"
-  echo "bootstrap (bb)               - Install bootstrap packages from host repositories into <masterdir>."
-  t "xbps-src binary-bootstrap"
+  echo "binbootstrap (bb)            - Install bootstrap packages from host repositories into <masterdir>."
   echo "bootstrap-up (bu)            - Updates bootstrap packages with latest versions" \
-                                       "available from registered repositories in the XBPS" \
-                                       "configuration file."
-  t "xbps-src bootstrap-update"
+                                      "available from registered repositories in the XBPS" \
+                                      "configuration file."
+  echo "build-deps (swbd)            - Show required build dependencies for <pkgname>.<Paste>"
   echo "install (i)                  - Build binary package for <pkgname> and all required dependencies and install."
-  t "xbps-src pkg <pkg> && xbps-install --repository=.hostdir/... <pkg>"
   echo "list (l)                     - Lists installed packages in <masterdir>."
-  t "xbps-src list"
   echo "pull                         - Update void-packages and sources repositories."
-  t "git pull"
-  # echo "sync                         - Synchronize remote repository data"
-  # t "xbps-install -S"
-
-  # echo "help                         - Show usage information"
-  # echo "helppager (hp)               - Show usage information (will pipe output to less/more)"
-  # echo
-  # echo -n "$colorheader"
-  # echo "XBPS COMPATIBILITY COOLNESS:"
-  # echo -n "$colorgray"
-  # f=(/usr/sbin/xbps-*)
-  # echo "$progname also understands all unknown XBPS sub-commands, too:"
-  # echo -n "Example: "
-  # selected=${f[$RANDOM % ${#f[@]}]}
-  # echo "$progname ${selected##*-} <ARGS> - see also: /usr/sbin/xbps-*"
-  echo
-  echo -n "$colorreset"
+  echo "purge-distfiles (pdistf)     - Removes all obsolete distfiles in <hostdir>/sources."
+  echo "search (s)                   - Search for package by <name>."
+  echo "show (sw)                    - Show information for the specified package."
+  echo "uninstall (un)               - Uninstall and purge distfiles for <pkgname>."
+	echo
+	echo -n "$colorreset"
 }
 
 setcolors auto
@@ -315,7 +284,7 @@ if_instaled () {
 }
 
 lsgrep_binpkgs () {
-  ls $VOID_PKGS/hostdir/* | rg $1
+  [ -d $VOID_BINPKGS/* ] && ls $VOID_BINPKGS/* | rg $1 || echo ''
 }
 
 check_binpkgs () {
@@ -327,7 +296,7 @@ check_binpkgs () {
 search_result () {
   declare -a res=()
 
-  pkgs=$(ls $VOID_PKGS/srcpkgs | fzf --filter=$1 -e)
+  pkgs=$(ls $VOID_SRCPKGS | rg $1)
   lword=$(longest_word ${pkgs[@]})
 
   for pkg in ${pkgs[@]}
@@ -335,10 +304,10 @@ search_result () {
     wsnum=$(whitespaces $lword ${#pkg})
     desc=$(show_desc $pkg)
     inststr=$(check_binpkgs $pkg)
-    res+=("\n$inststr $pkg$wsnum-$desc")
+    res+=("$inststr $pkg$wsnum-$desc")
   done
 
-  echo -e "${res[@]}"
+  printf '%s\n' "${res[@]}"
 }
 
 build_binary () {
@@ -347,13 +316,17 @@ build_binary () {
   do
     if [[ "$line" =~ Registering ]]; then
       echo "$line" | awk '{print $NF}' | cut -d'/' -f3-4 > xpath
+      echo -n "$colorgray"
+      echo "$line"
+      echo -n "$colorreset"
+    else
+      echo "$line"
     fi
-    echo "$line"
   done
 }
 
 case "$cmd" in
-  bootstrap|bb)
+  binbootstrap|bb)
     msg -n "Create the bootstrap environment: "
     echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
     wrapcommand ./xbps-src binary-bootstrap
@@ -364,14 +337,9 @@ case "$cmd" in
     wrapcommand ./xbps-src bootstrap-update
   ;;
 
-  search|s)
-    msg -n "Searching for: $* "
-    wrapcommand search_result "$@"
-  ;;
-
-  show|sw)
-    msg -n "Show information for: $* "
-    wrapcommand ./xbps-src show "$@"
+  build-deps|swbd)
+    msg -n "Show required build dependencies for: $*"
+    wrapcommand ./xbps-src show-build-deps "$@"
   ;;
 
   install|i)
@@ -387,7 +355,7 @@ case "$cmd" in
     rm -rf $VOID_PKGS/xpath &> /dev/null
 
     msg -n "Installing packages: $* "
-    wrapcommand sudo xbps-install -S --repository=$HOME/.void-packages/hostdir/$xpath "$@"
+    wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
   ;;
 
   list|l)
@@ -398,5 +366,31 @@ case "$cmd" in
   pull)
     msg -n "Update repo: "
     wrapcommand git pull
+  ;;
+
+  purge-distfiles|pdistf)
+    msg -n "Removes all obsolete distfiles in $VOID_HOSTDIR/sources"
+    wrapcommand ./xbps-src purge-distfiles
+  ;;
+
+  search|s)
+    msg -n "Searching for: $* "
+    wrapcommand search_result "$@"
+  ;;
+
+  show|sw)
+    msg -n "Show information for: $* "
+    wrapcommand ./xbps-src show "$@"
+  ;;
+
+  unistall|un)
+    shopt -s globstar
+
+    msg -n "Remove package and purge distfiles: $* "
+    sudo xbps-remove -v -R "$@"
+    rm -rf $VOID_BINPKGS/**/*$@*
+    ./xbps-src purge-distfiles
+
+    shopt -u globstar
   ;;
 esac
