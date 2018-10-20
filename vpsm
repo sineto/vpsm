@@ -249,6 +249,9 @@ if [[ $arg =~ --.* ]]; then
 fi
 shift
 
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+template_path=$VOID_PKGS/srcpkgs/$@/template
+
 longest_word () {
   declare -a pkgs=$@
   declare -i longest=0
@@ -269,7 +272,7 @@ whitespaces() {
 
   while [[ "$i" != $qnt_ws ]]
   do
-    space="$space "
+    space+=" "
     ((i+=1))
   done
   echo "$space"
@@ -286,7 +289,7 @@ if_instaled () {
 }
 
 lsgrep_binpkgs () {
-  [ -d $VOID_BINPKGS/* ] && ls $VOID_BINPKGS/* | rg $1 || echo ''
+  [ -d "$VOID_BINPKGS/*" ] && ls $VOID_BINPKGS/* | rg $1 || echo ''
 }
 
 check_binpkgs () {
@@ -327,7 +330,22 @@ build_binary () {
   done
 }
 
+xgensum_config() {
+  xgensum -f $1 | \
+  while read line
+  do
+    if [[ "$line" =~ checksum= ]]; then
+      sed -i "s/^checksum=.*$/$line/g" $template_path
+    fi
+    echo "$line"
+  done
+}
+
 case "$cmd" in
+
+  # clone repo with ssh
+  # git@github.com:sinetoami/void-packages.git
+
   binbootstrap|bb)
     msg -n "Create the bootstrap environment: "
     echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
@@ -340,24 +358,25 @@ case "$cmd" in
   ;;
 
 	build-environment)
-		whoami=$(whoami)
+    whoami=$(whoami)
+    sudo xbps-install xtools
 
-		msg "XBPS_CHROOT_CMD=uchroot >> etc/conf"
-		echo XBPS_CHROOT_CMD=uchroot >> etc/conf
+    msg "XBPS_CHROOT_CMD=uchroot >> etc/conf"
+    echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
-		cd /usr/bin
-		msg "chown root:xbuilder xbps-uchroot"
-		sudo chown root:xbuilder xbps-uchroot
-		msg "chmod 4750 xbps-uchroot"
-		sudo chmod 4750 xbps-uchroot
-		msg "usermod -a -G xbuilder $whoami"
-		sudo usermod -a -G xbuilder $whoami
+    cd /usr/bin
+    msg "chown root:xbuilder xbps-uchroot"
+    sudo chown root:xbuilder xbps-uchroot
+    msg "chmod 4750 xbps-uchroot"
+    sudo chmod 4750 xbps-uchroot
+    msg "usermod -a -G xbuilder $whoami"
+    sudo usermod -a -G xbuilder $whoami
 
-		cd $OLDPWD
-		msg "add void-linux/void-packages track repository"
-		git remote add void-linux https://github.com/void-linux/void-packages
-		msg "git pull void-linux master"
-		git pull void-linux master
+    cd $OLDPWD
+    msg "add void-linux/void-packages track repository"
+    git remote add void-linux git://github.com/void-linux/void-packages.git
+    msg "git pull void-linux master"
+    git pull void-linux master
 	;;
 
   build-deps|swbd)
@@ -375,8 +394,13 @@ case "$cmd" in
     echo ''
     build_binary "$@"
     xpath=$(cat $VOID_PKGS/xpath)
-    rm -rf $VOID_PKGS/xpath &> /dev/null
 
+    if [ "$xpath" == '' ]; then
+      rmsg 255 "ERROR: can't found repository to $* package."
+      exit 1
+    fi
+
+    rm -rf $VOID_PKGS/xpath &> /dev/null
     msg -n "Installing packages: $* "
     wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
   ;;
@@ -386,10 +410,10 @@ case "$cmd" in
     wrapcommand ./xbps-src list
   ;;
 
-	pkg)
-		msg -n "Build binary package for: $* "
-		wrapcommand ./xbps-src pkg "$@"
-	;;
+  pkg)
+    msg -n "Build binary package for: $* "
+    wrapcommand ./xbps-src pkg "$@"
+  ;;
 
   pull)
     msg -n "Update repo: "
@@ -411,14 +435,40 @@ case "$cmd" in
     wrapcommand ./xbps-src show "$@"
   ;;
 
-  unistall|un)
+  uninstall|un)
     shopt -s globstar
 
-    msg -n "Remove package and purge distfiles: $* "
+    msg "Remove package and purge distfiles: $* "
     sudo xbps-remove -v -R "$@"
     rm -rf $VOID_BINPKGS/**/*$@*
-    ./xbps-src purge-distfiles
 
     shopt -u globstar
+  ;;
+
+  update|up)
+    msg "Update void-packages from void-linux remote master"
+    git pull void-linux master
+    msg "Push commits to my own repo"
+    git push -u origin $current_branch
+  ;;
+
+  xgsum)
+    msg -n "Generate/Update SHA256 sum in: $*/template "
+    wrapcommand xgensum_config $template_path
+  ;;
+
+  edit-template|edtp)
+    exec $EDITOR $template_path
+  ;;
+
+  add-commit-new-pkg|anp)
+    msg "Add new package to repository: branch -> $current_branch"
+    git add .
+    wrapcomand git commit -m "New package: $*"
+  ;;
+
+  push-commit|pc)
+    msg "Push commit to repository: branch -> $current_branch"
+    wrapcomman git push -u origin $current_branch
   ;;
 esac
