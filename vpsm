@@ -183,20 +183,25 @@ usage () {
   echo -n "$colorheader"
   echo "SUBCOMMANDS: "
   echo -n "$colorgray"
-  echo "binbootstrap (bb)            - Install bootstrap packages from host repositories into <masterdir>."
-  echo "bootstrap-up (bu)            - Updates bootstrap packages with latest versions" \
-                                      "available from registered repositories in the XBPS" \
-                                      "configuration file."
-  echo "build-environment            - Configure environment to create binary packages."
-  echo "build-deps (swbd)            - Show required build dependencies for <pkgname>."
-  echo "install (i)                  - Build binary package for <pkgname> and all required dependencies and install."
-  echo "list (l)                     - Lists installed packages in <masterdir>."
-  echo "pkg                          - Only build binary package for <pkgname> and all required dependencies."
-  echo "pull                         - Update void-packages and sources repositories."
-  echo "purge-distfiles (pdistf)     - Removes all obsolete distfiles in <hostdir>/sources."
-  echo "search (s)                   - Search for package by <name>."
-  echo "show (sw)                    - Show information for the specified package."
-  echo "uninstall (un)               - Uninstall and purge distfiles for <pkgname>."
+
+  echo "add-commit-changes (acc) <commit-message>     - Add and commit work changes on void-packages clone repository."
+  echo "binbootstrap (bb)                             - Install bootstrap packages from host repositories into <masterdir>."
+  echo "bootstrap-up (bu)                             - Updates bootstrap packages."
+  echo "build-environment                             - Configure environment to create binary packages."
+  echo "build-deps (swbd) <pkgname>                   - Show required build dependencies for <pkgname>."
+  echo "edit-template (et) <pkgname>                  - Edit <pkgname> template."
+  echo "install (i) <pkgname>                         - Build binary package for <pkgname> and all required dependencies and install."
+  echo "list (l)                                      - Lists installed packages in <masterdir>."
+  echo "pkg <pkgname>                                 - Only build binary package for <pkgname> and all required dependencies."
+  echo "pull                                          - Update void-packages and sources repositories."
+  echo "purge-distfiles (pdistf)                      - Removes all obsolete distfiles in <hostdir>/sources."
+  echo "push-commit (pc)                              - Push commits to void-packages clone repository."
+  echo "search (s) <pkgname>                          - Search for package by <name>."
+  echo "show (sw) <pkgname>                           - Show information for the specified package."
+  echo "uninstall (un) <pkgname>                      - Uninstall and purge distfiles for <pkgname>."
+  echo "update-repo (upr)                             - Pull commit from remote branch master and push commit changes to void-packages clone repository."
+  echo "update-sys (ups)                              - Rebuilds packages in system and updates them."
+  echo "xgsum <pkgname>                               - Generate SHA256 for <pkgname> template."
 	echo
 	echo -n "$colorreset"
 }
@@ -295,6 +300,11 @@ case "$cmd" in
 
   # clone repo with ssh
   # git@github.com:sinetoami/void-packages.git
+  add-commit-changes|acc)
+    msg "Add new changes: branch -> $current_branch"
+    git add .
+    wrapcomand git commit -m "$@"
+  ;;
 
   binbootstrap|bb)
     msg -n "Create the bootstrap environment: "
@@ -332,6 +342,10 @@ case "$cmd" in
   build-deps|swbd)
     msg -n "Show required build dependencies for: $*"
     wrapcommand ./xbps-src show-build-deps "$@"
+  ;;
+
+  edit-template|et)
+    exec $EDITOR $template_path
   ;;
 
   install|i)
@@ -375,6 +389,11 @@ case "$cmd" in
     wrapcommand ./xbps-src purge-distfiles
   ;;
 
+  push-commit|pc)
+    msg "Push commit to repository: branch -> $current_branch"
+    wrapcomman git push -u origin $current_branch
+  ;;
+
   search|s)
     repos=$(addrepos)
     msg -n "Searching for: $* "
@@ -411,20 +430,5 @@ case "$cmd" in
   xgsum)
     msg -n "Generate/Update SHA256 sum in: $@/template "
     wrapcommand xgensum_config $template_path
-  ;;
-
-  edit-template|edtp)
-    exec $EDITOR $template_path
-  ;;
-
-  add-commit-new-pkg|anp)
-    msg "Add new package to repository: branch -> $current_branch"
-    git add .
-    wrapcomand git commit -m "New package: $@"
-  ;;
-
-  push-commit|pc)
-    msg "Push commit to repository: branch -> $current_branch"
-    wrapcomman git push -u origin $current_branch
   ;;
 esac
