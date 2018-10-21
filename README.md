@@ -1,7 +1,7 @@
-###USAGE: 
-vpsm [SUBCOMMANDS] [<ARGS>]
+### USAGE
+vpsm SUBCOMMANDS <ARGS>
 
-###SUBCOMMANDS: 
+### SUBCOMMANDS: 
 
 * add-commit-changes (acc) `<commit-message>`   - Add and commit work changes on void-packages clone repository.
 * binbootstrap (bb)                             - Install bootstrap packages from host repositories into <masterdir>.
