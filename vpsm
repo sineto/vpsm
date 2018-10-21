@@ -252,69 +252,6 @@ shift
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 template_path=$VOID_PKGS/srcpkgs/$@/template
 
-longest_word () {
-  declare -a pkgs=$@
-  declare -i longest=0
-  for pkg in ${pkgs[@]}
-  do
-    if [ ${#pkg} -gt $longest ]; then
-      longest=${#pkg}
-    fi
-  done
-
-  echo $longest
-}
-
-whitespaces() {
-  i=0
-  space=" "
-  qnt_ws=$(($1 - $2))
-
-  while [[ "$i" != $qnt_ws ]]
-  do
-    space+=" "
-    ((i+=1))
-  done
-  echo "$space"
-
-}
-
-show_desc () {
-  ./xbps-src show "$1" | rg short_desc | awk '{$1=""; print $0}'
-}
-
-if_instaled () {
-  [[ "$1" != '' ]] && flag="[$colorgray*$colorreset]" || flag="[-]"
-  echo -n "$flag"
-}
-
-lsgrep_binpkgs () {
-  [ -d "$VOID_BINPKGS/*" ] && ls $VOID_BINPKGS/* | rg $1 || echo ''
-}
-
-check_binpkgs () {
-  check=$(lsgrep_binpkgs "$1")
-  resul=$(if_instaled $check)
-  echo -n "$resul"
-}
-
-search_result () {
-  declare -a res=()
-
-  pkgs=$(ls $VOID_SRCPKGS | rg $1)
-  lword=$(longest_word ${pkgs[@]})
-
-  for pkg in ${pkgs[@]}
-  do
-    wsnum=$(whitespaces $lword ${#pkg})
-    desc=$(show_desc $pkg)
-    inststr=$(check_binpkgs $pkg)
-    res+=("$inststr $pkg$wsnum-$desc")
-  done
-
-  printf '%s\n' "${res[@]}"
-}
-
 build_binary () {
   ./xbps-src pkg "$@" | \
   while read line
@@ -339,6 +276,19 @@ xgensum_config() {
     fi
     echo "$line"
   done
+}
+
+addrepos() {
+  check_repos=$(find $VOID_BINPKGS/* -type d)
+  declare -a repos
+  for repo in ${check_repos[@]}
+  do
+    if ! [[ "$repo" =~ repodata ]];then
+      repos+="--repository=$repo "
+    fi
+  done
+
+  echo "${repos[@]}"
 }
 
 case "$cmd" in
@@ -426,8 +376,9 @@ case "$cmd" in
   ;;
 
   search|s)
+    repos=$(addrepos)
     msg -n "Searching for: $* "
-    wrapcommand search_result "$@"
+    wrapcommand xbps-query $repos -Rs "$@"
   ;;
 
   show|sw)
@@ -445,15 +396,20 @@ case "$cmd" in
     shopt -u globstar
   ;;
 
-  update|up)
+  update-repo|upr)
     msg "Update void-packages from void-linux remote master"
     git pull void-linux master
     msg "Push commits to my own repo"
     git push -u origin $current_branch
   ;;
 
+  update-sys|ups)
+    msg "Rebuilds packages in system and updates them."
+    wrapcommand ./xbps-src update-sys
+  ;;
+
   xgsum)
-    msg -n "Generate/Update SHA256 sum in: $*/template "
+    msg -n "Generate/Update SHA256 sum in: $@/template "
     wrapcommand xgensum_config $template_path
   ;;
 
@@ -464,7 +420,7 @@ case "$cmd" in
   add-commit-new-pkg|anp)
     msg "Add new package to repository: branch -> $current_branch"
     git add .
-    wrapcomand git commit -m "New package: $*"
+    wrapcomand git commit -m "New package: $@"
   ;;
 
   push-commit|pc)
