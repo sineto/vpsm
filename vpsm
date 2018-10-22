@@ -137,6 +137,9 @@ elif ! [ -d $distdir ]; then
   git clone "$void_packages_url" "$target_dir"
   msg "Cloned!"
 
+  msg "Install xtools utility "
+  sudo xbps-install xtools
+
   exit
 else
   export VOID_PKGS=$XBPS_DISTDIR
@@ -410,30 +413,47 @@ case "$cmd" in
     wrapcommand git remote add "$@"
   ;;
 
-  checkout-branch|cb)
+  checkout-branch|co)
     msg -n "Switch branch -> $* "
     wrapcommand git checkout "$@"
   ;;
 
   commit-changes|cc)
     msg -n "Commit changes on -> $current_branch "
-    wrapcommand git commit -m "$@"
+    wrapcommand xbump "$@"
+  ;;
+
+  create-branch|cb)
+    msg -n "Create a new branch -> $* "
+    wrapcommand git branch "$@"
+  ;;
+
+  delete-branch|delb)
+    msg -n "Delete branch -> $* "
+    wrapcommand git branch -d "$@"
   ;;
 
   pull|pp)
     msg -n "Pull commits from: repo->$1, branch->$2 "
-    wrapcommand git pull "$@"
+    wrapcommand git pull --rebase "$@"
+  ;;
+
+  pull-request|pr)
+    msg -n "Create a pull-request "
+    wrapcommand git pull-request -m $(git log -1 --pretty=%B)
   ;;
 
   push-commit|pc)
-    msg "Push commit to: repo->$1, branch->$2 "
+    msg -n "Push commit to: repo->$1, branch->$2 "
     wrapcommand git push -u "$@"
   ;;
 
   update-repo|upr)
-    gh_url="https://github.com/void-linux/void-packages.git"
-    msg "Pull commits from void-linux official repo->$gh_url, branch->master "
-    git pull $gh_url master
+    lrepo=$(git remote -v | rg void-linux/void-packages | awk '{print $1}' | head -1)
+    msg "Pull commits from void-linux official repo->$lrepo "
+    git checkout master
+    git pull --rebase $lrepo master
+    ./xbps-src bootstrap-update
   ;;
 
 # --------------------------------------------------------------------------------------------
@@ -451,7 +471,6 @@ case "$cmd" in
 
 	build-environment)
     whoami=$(whoami)
-    sudo xbps-install xtools
 
     msg "XBPS_CHROOT_CMD=uchroot >> etc/conf "
     echo XBPS_CHROOT_CMD=uchroot >> etc/conf
@@ -468,7 +487,7 @@ case "$cmd" in
     msg "add void-linux/void-packages track repository "
     git remote add void-linux git://github.com/void-linux/void-packages.git
     msg "git pull void-linux master "
-    git pull void-linux master
+    git pull --rebase void-linux master
 	;;
 
   edit-template|et)
@@ -494,7 +513,14 @@ case "$cmd" in
 
     rm -rf $VOID_PKGS/xpath &> /dev/null
     msg -n "Installing package -> $* "
-    wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
+    # wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
+    wrapcommand xi "$@"
+  ;;
+
+  lint|li)
+    template=$(template_path "$@")
+    msg -n "Scan for common mistakes "
+    wrapcommand xlint "$template"
   ;;
 
   list|l)
@@ -571,5 +597,10 @@ case "$cmd" in
   xgsum)
     msg -n "Generate/Update SHA256 sum -> $@/template "
     wrapcommand xgensum_config "$@"
+  ;;
+
+  xinstall|xi)
+    msg -n "Install $* package "
+    wrapcommand xi "$@"
   ;;
 esac
