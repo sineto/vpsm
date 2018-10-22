@@ -1,10 +1,5 @@
 #!/bin/bash
-export VOID_PKGS=$HOME/.void-packages
-export VOID_SRCPKGS=$VOID_PKGS/srcpkgs
-export VOID_HOSTDIR=$VOID_PKGS/hostdir
-export VOID_BINPKGS=$VOID_HOSTDIR/binpkgs
-
-cd $VOID_PKGS
+progname=${0##*/}
 
 numcolorok=2
 numcolorfail=1
@@ -15,16 +10,6 @@ numcolorgray=2
 numcolorpkgcount=8
 numcolordarkgray=11
 numcolorbrackets=6
-
-getversion () {
-  local fp=$(readlink -f "$0")
-  (cd "${fp%/*}" && \
-    git describe --all --debug --long --tags 2>/dev/null) || echo "UNKNOWN"
-}
-
-version=$(getversion)
-progname=${0##*/}
-verbose=false
 
 # enable or disable colors based on the argument given, i.e.:
 # setcolors on   # colors on
@@ -63,7 +48,7 @@ setcolors () {
       colorpkgcount=${COLORS[$numcolorpkgcount]}
       colortext=${COLORS[$numcolortext]}
       colorreset=$(tput sgr0)
-    ;;
+      ;;
     off)
       colorbrackets=
       colordarkgray=
@@ -77,11 +62,11 @@ setcolors () {
       colorreset=
       unset COLORS
       declare -A COLORS
-    ;;
+      ;;
     *)
       rmsg 255 "unknown color option: '$opt'"
       exit 255
-    ;;
+      ;;
   esac
 }
 
@@ -125,6 +110,53 @@ rmsg () {
   printf '%s %s%s%s\n' "$logo" "$statuscolor" "$*" "$colorreset"
 }
 
+
+# --------------------------------------------------------------------------------------------
+
+setcolors on
+logo=$(getlogo)
+distdir=$(xdistdir 2>&1)
+IFS=$'\n' read -rd '' -a xdistdir_msgs <<<"$distdir"
+
+if [ "$?" == 111 ]; then
+  for m in "${xdistdir_msgs[@]}"
+  do
+     printf '%s %s%s%s\n' "$logo" "$colorfail" "$m" "$colorreset"
+  done
+  exit
+elif ! [ -d $distdir ]; then
+  m="No such file or directory: $distdir"
+  printf '%s %s%s%s\n' "$logo" "$colorfail" "$m" "$colorreset"
+
+  read -p "$colorgray-> Clone void-packages from: $colorreset"  void_packages_url
+  read -e -p "$colorgray-> Target directory: $colorreset"  void_packages_dest
+
+  eval target_dir=$void_packages_dest
+
+  msg "Cloning from $void_packages_url -> $target_dir"
+  git clone "$void_packages_url" "$target_dir"
+  msg "Cloned!"
+
+  exit
+else
+  export VOID_PKGS=$XBPS_DISTDIR
+  export VOID_SRCPKGS=$VOID_PKGS/srcpkgs
+  export VOID_HOSTDIR=$VOID_PKGS/hostdir
+  export VOID_BINPKGS=$VOID_HOSTDIR/binpkgs
+  cd $VOID_PKGS
+fi
+
+# --------------------------------------------------------------------------------------------
+
+getversion () {
+  local fp=$(readlink -f "$0")
+  (cd "${fp%/*}" && \
+    git describe --all --debug --long --tags 2>/dev/null) || echo "UNKNOWN"
+}
+
+version=$(getversion)
+verbose=false
+
 banner () {
   echo -n "$colorlogo"
   echo ' __ ___ __ ____ __  ';
@@ -147,15 +179,6 @@ version () {
   msg "$progname - Version: $version"
   msg "Copyright (c) 2018 Sinésio Neto <sinetoami [at] gmail [dot] com> (GPLv3+)"
   msg "XBPS version: $(xbps-query -v --version | sed 's/GIT: UNSET//')"
-}
-
-t () {
-  if [[ -n $show_translations ]]; then
-    tput setaf 242
-    echo '                             ' "$@"
-    echo
-    tput setaf 109
-  fi
 }
 
 wrapcommand() {
@@ -181,25 +204,47 @@ usage () {
   echo "$progname [OPTIONS] [SUBCOMMANDS] [<ARGS>]"
   echo
   echo -n "$colorheader"
-  echo "SUBCOMMANDS: "
+  echo "OPTIONS: "
   echo -n "$colorgray"
 
-  echo "add-commit-changes (acc) <commit-message>     - Add and commit work changes on void-packages clone repository."
+  echo "--color=<yes|no|auto>        - Enable/Disable colorized output (default: auto)"
+  echo "--help                       - (same as: help)"
+  echo "--help-pager                 - (same as: helppager)"
+  echo
+
+  echo -n "$colorheader"
+  echo "GIT SUBCOMMANDS: "
+  echo -n "$colorgray"
+
+  echo "add-changes (ac) <file>                       - Add work changes in your clone repository."
+  echo "add-remote-repo (arr) <remote-name> <url>     - Add new remote repo in your clone repository."
+  echo "checkout-branch (cb) <branch-name>            - Switch branch."
+  echo "commit-changes (cc) <message>                 - Commits changes added."
+  echo "pull (pp) <remote-repo> <branch>              - Pull commit from <remote-repo> <remote-branch>."
+  echo "push-commit (pc) <remote-repo> <branch>       - Push commits to <romote-repo> <remote-branch>."
+  echo "update-repo (upr)                             - Pull commits from void-linux official repo."
+  echo
+
+  echo -n "$colorheader"
+  echo "XBPS-SRC SUBCOMMANDS: "
+  echo -n "$colorgray"
+
   echo "binbootstrap (bb)                             - Install bootstrap packages from host repositories into <masterdir>."
   echo "bootstrap-up (bu)                             - Updates bootstrap packages."
   echo "build-environment                             - Configure environment to create binary packages."
-  echo "build-deps (swbd) <pkgname>                   - Show required build dependencies for <pkgname>."
   echo "edit-template (et) <pkgname>                  - Edit <pkgname> template."
   echo "install (i) <pkgname>                         - Build binary package for <pkgname> and all required dependencies and install."
   echo "list (l)                                      - Lists installed packages in <masterdir>."
   echo "pkg <pkgname>                                 - Only build binary package for <pkgname> and all required dependencies."
-  echo "pull                                          - Update void-packages and sources repositories."
   echo "purge-distfiles (pdistf)                      - Removes all obsolete distfiles in <hostdir>/sources."
-  echo "push-commit (pc)                              - Push commits to void-packages clone repository."
-  echo "search (s) <pkgname>                          - Search for package by <name>."
+  echo "searchbin (sb) <pkgname>                      - Search in <hostdir>/binpkgs for package by <name> (use xbps-query). "
+  echo "searchsrc (ss) <pkgname>                      - Search in <srcpkgs> for package by <name>."
   echo "show (sw) <pkgname>                           - Show information for the specified package."
+  echo "show-build-deps (bdeps) <pkgname>             - Show required build dependencies for <pkgname>."
+  echo "show-deps (rdeps) <pkgname>                   - Show required run-time dependencies for <pkgname>."
   echo "uninstall (un) <pkgname>                      - Uninstall and purge distfiles for <pkgname>."
-  echo "update-repo (upr)                             - Pull commit from remote branch master and push commit changes to void-packages clone repository."
+  echo "update-bulk (upb)                             - Rebuilds all packages in the system repositories that are outdated."
+  echo "update-check (upc) <pkgname>                  - Check upstream site of <pkgname> for new releases."
   echo "update-sys (ups)                              - Rebuilds packages in system and updates them."
   echo "xgsum <pkgname>                               - Generate SHA256 for <pkgname> template."
 	echo
@@ -220,14 +265,6 @@ case "$1" in
     setcolors off
     shift
   ;;
-  --verbose=true)
-    shift
-    verbose=true
-  ;;
-  --show-translations)
-    shift
-    show_translations=1
-  ;;
   --help)
     shift
     usage
@@ -243,19 +280,71 @@ case "$1" in
   ;;
 esac
 
-if [[ -z $1 ]]; then
-  usage
-  exit 0
-fi
-
-cmd=$1
-if [[ $arg =~ --.* ]]; then
-  cmd=${arg:2}
-fi
-shift
-
 current_branch=$(git rev-parse --abbrev-ref HEAD)
-template_path=$VOID_PKGS/srcpkgs/$@/template
+template_path() {
+  echo "$VOID_PKGS/srcpkgs/$1/template"
+}
+
+longest_word () {
+  declare -a pkgs=$@
+  declare -i longest=0
+  for pkg in ${pkgs[@]}
+  do
+    if [ ${#pkg} -gt $longest ]; then
+      longest=${#pkg}
+    fi
+  done
+  echo $longest
+}
+
+whitespaces() {
+  i=0
+  space=" "
+  qnt_ws=$(($1 - $2))
+
+  while [[ "$i" != $qnt_ws ]]
+  do
+    space+=" "
+    ((i+=1))
+  done
+  echo "$space"
+}
+
+show_desc () {
+  ./xbps-src show "$1" | rg short_desc | awk '{$1=""; print $0}'
+}
+
+if_instaled () {
+  [[ "$1" != '' ]] && flag="[$colorgray*$colorreset]" || flag="[-]"
+  echo -n "$flag"
+}
+
+lsgrep_binpkgs () {
+  [ -d "$VOID_BINPKGS" ] && ls $VOID_HOSTDIR/* | rg $1 || echo ''
+}
+
+check_binpkgs () {
+  check=$(lsgrep_binpkgs "$1")
+  resul=$(if_instaled $check)
+  echo -n "$resul"
+}
+
+search_result () {
+  declare -a res=()
+
+  pkgs=$(ls $VOID_SRCPKGS | rg $1)
+  lword=$(longest_word ${pkgs[@]})
+
+  for pkg in ${pkgs[@]}
+  do
+    wsnum=$(whitespaces $lword ${#pkg})
+    desc=$(show_desc $pkg)
+    inststr=$(check_binpkgs $pkg)
+    res+=("$inststr $pkg$wsnum-$desc")
+  done
+
+  printf '%s\n' "${res[@]}"
+}
 
 build_binary () {
   ./xbps-src pkg "$@" | \
@@ -273,11 +362,12 @@ build_binary () {
 }
 
 xgensum_config() {
-  xgensum -f $1 | \
+  template=$(template_path $1)
+  xgensum -f $template | \
   while read line
   do
     if [[ "$line" =~ checksum= ]]; then
-      sed -i "s/^checksum=.*$/$line/g" $template_path
+      sed -i "s/^checksum=.*$/$line/g" $template
     fi
     echo "$line"
   done
@@ -296,24 +386,66 @@ addrepos() {
   echo "${repos[@]}"
 }
 
-case "$cmd" in
+if [[ -z $1 ]]; then
+  usage
+  exit 0
+fi
 
-  # clone repo with ssh
-  # git@github.com:sinetoami/void-packages.git
-  add-commit-changes|acc)
-    msg "Add new changes: branch -> $current_branch"
-    git add .
-    wrapcomand git commit -m "$@"
+cmd=$1
+if [[ $arg =~ --.* ]]; then
+  cmd=${arg:2}
+fi
+shift
+
+case "$cmd" in
+# --------------------------------------------------------------------------------------------
+# GIT OPTIONS
+  add-changes|ac)
+    msg -n "Add changes -> $* "
+    wrapcommand git add "$@"
   ;;
 
+  add-remote-repo|arr)
+    msg -n "Add new remote repo -> $* "
+    wrapcommand git remote add "$@"
+  ;;
+
+  checkout-branch|cb)
+    msg -n "Switch branch -> $* "
+    wrapcommand git checkout "$@"
+  ;;
+
+  commit-changes|cc)
+    msg -n "Commit changes on -> $current_branch "
+    wrapcommand git commit -m "$@"
+  ;;
+
+  pull|pp)
+    msg -n "Pull commits from: repo->$1, branch->$2 "
+    wrapcommand git pull "$@"
+  ;;
+
+  push-commit|pc)
+    msg "Push commit to: repo->$1, branch->$2 "
+    wrapcommand git push -u "$@"
+  ;;
+
+  update-repo|upr)
+    gh_url="https://github.com/void-linux/void-packages.git"
+    msg "Pull commits from void-linux official repo->$gh_url, branch->master "
+    git pull $gh_url master
+  ;;
+
+# --------------------------------------------------------------------------------------------
+# XBPS-SRC OPTIONS
   binbootstrap|bb)
-    msg -n "Create the bootstrap environment: "
+    msg -n "Create the bootstrap environment "
     echo XBPS_ALLOW_RESTRICTED=yes >> etc/conf
     wrapcommand ./xbps-src binary-bootstrap
   ;;
 
   bootstrap-up|bu)
-    msg -n "Updates bootstrap packages: "
+    msg -n "Updates bootstrap packages "
     wrapcommand ./xbps-src bootstrap-update
   ;;
 
@@ -321,11 +453,11 @@ case "$cmd" in
     whoami=$(whoami)
     sudo xbps-install xtools
 
-    msg "XBPS_CHROOT_CMD=uchroot >> etc/conf"
+    msg "XBPS_CHROOT_CMD=uchroot >> etc/conf "
     echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
     cd /usr/bin
-    msg "chown root:xbuilder xbps-uchroot"
+    msg "chown root:xbuilder xbps-uchroot "
     sudo chown root:xbuilder xbps-uchroot
     msg "chmod 4750 xbps-uchroot"
     sudo chmod 4750 xbps-uchroot
@@ -333,19 +465,15 @@ case "$cmd" in
     sudo usermod -a -G xbuilder $whoami
 
     cd $OLDPWD
-    msg "add void-linux/void-packages track repository"
+    msg "add void-linux/void-packages track repository "
     git remote add void-linux git://github.com/void-linux/void-packages.git
-    msg "git pull void-linux master"
+    msg "git pull void-linux master "
     git pull void-linux master
 	;;
 
-  build-deps|swbd)
-    msg -n "Show required build dependencies for: $*"
-    wrapcommand ./xbps-src show-build-deps "$@"
-  ;;
-
   edit-template|et)
-    exec $EDITOR $template_path
+    template=$(template_path "$@")
+    exec $EDITOR $template
   ;;
 
   install|i)
@@ -354,7 +482,7 @@ case "$cmd" in
       exit 1
     fi
 
-    msg -n "Build binary package: $* "
+    msg -n "Build binary package -> $* "
     echo ''
     build_binary "$@"
     xpath=$(cat $VOID_PKGS/xpath)
@@ -365,70 +493,83 @@ case "$cmd" in
     fi
 
     rm -rf $VOID_PKGS/xpath &> /dev/null
-    msg -n "Installing packages: $* "
+    msg -n "Installing package -> $* "
     wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
   ;;
 
   list|l)
-    msg -n "Lists installed packages: "
+    msg -n "Lists installed packages "
     wrapcommand ./xbps-src list
   ;;
 
   pkg)
-    msg -n "Build binary package for: $* "
+    msg -n "Build binary package -> $* "
     wrapcommand ./xbps-src pkg "$@"
   ;;
 
-  pull)
-    msg -n "Update repo: "
-    wrapcommand git pull
-  ;;
-
-  purge-distfiles|pdistf)
-    msg -n "Removes all obsolete distfiles in $VOID_HOSTDIR/sources"
+  purge-distfiles|purged)
+    msg -n "Removes all obsolete distfiles in $VOID_HOSTDIR/sources "
     wrapcommand ./xbps-src purge-distfiles
   ;;
 
-  push-commit|pc)
-    msg "Push commit to repository: branch -> $current_branch"
-    wrapcomman git push -u origin $current_branch
-  ;;
-
-  search|s)
+  searchbin|sb)
     repos=$(addrepos)
-    msg -n "Searching for: $* "
+    msg -n "Searching (binpkgs) -> $* "
     wrapcommand xbps-query $repos -Rs "$@"
   ;;
 
+  searchsrc|ss)
+    msg -n "Searching (srcpkgs) -> $* "
+    wrapcommand search_result "$@"
+  ;;
+
   show|sw)
-    msg -n "Show information for: $* "
+    msg -n "Show information -> $* "
     wrapcommand ./xbps-src show "$@"
+  ;;
+
+  show-build-deps|bdeps)
+    msg -n "Show required build dependencies -> $* "
+    wrapcommand ./xbps-src show-build-deps "$@"
+  ;;
+
+  show-deps|deps)
+    msg -n "Show required run-time dependencies -> $* "
+    wrapcommand ./xbps-src show-deps "$@"
+  ;;
+
+  show-repo-updates|sru)
+    msg -n "Printing the list of outdated packages "
+    wrapcommand ./xbps-src show-repo-updates
   ;;
 
   uninstall|un)
     shopt -s globstar
 
-    msg "Remove package and purge distfiles: $* "
+    msg "Remove package and purge distfiles -> $* "
     sudo xbps-remove -v -R "$@"
     rm -rf $VOID_BINPKGS/**/*$@*
 
     shopt -u globstar
   ;;
 
-  update-repo|upr)
-    msg "Update void-packages from void-linux remote master"
-    git pull void-linux master
-    msg "Push commits to my own repo"
-    git push -u origin $current_branch
+  update-bulk|upb)
+    msg -n "Rebuilds all packages outdated (system repositories) "
+    wrapcommand ./xbps-src update-bulk
+  ;;
+
+  update-check|upc)
+    msg -n "Check upstream site new releases -> $* "
+    wrapcommand ./xbps-src update-check "$@"
   ;;
 
   update-sys|ups)
-    msg "Rebuilds packages in system and updates them."
+    msg -n "Rebuilds packages and updates them (in system) "
     wrapcommand ./xbps-src update-sys
   ;;
 
   xgsum)
-    msg -n "Generate/Update SHA256 sum in: $@/template "
-    wrapcommand xgensum_config $template_path
+    msg -n "Generate/Update SHA256 sum -> $@/template "
+    wrapcommand xgensum_config "$@"
   ;;
 esac
