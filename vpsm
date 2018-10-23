@@ -354,21 +354,6 @@ search_result () {
   printf '%s\n' "${res[@]}"
 }
 
-build_binary () {
-  ./xbps-src pkg "$@" | \
-  while read line
-  do
-    if [[ "$line" =~ Registering ]]; then
-      echo "$line" | awk '{print $NF}' | cut -d'/' -f3-4 > xpath
-      echo -n "$colorgray"
-      echo "$line"
-      echo -n "$colorreset"
-    else
-      echo "$line"
-    fi
-  done
-}
-
 xgensum_config() {
   template=$(template_path $1)
   xgensum -f $template | \
@@ -507,19 +492,10 @@ case "$cmd" in
       exit 1
     fi
 
-    msg -n "Build binary package -> $* "
-    echo ''
-    build_binary "$@"
-    xpath=$(cat $VOID_PKGS/xpath)
+    msg "Build binary package -> $* "
+    ./xbps-src pkg "$@"
 
-    if [ "$xpath" == '' ]; then
-      rmsg 255 "ERROR: can't found repository to $* package."
-      exit 1
-    fi
-
-    rm -rf $VOID_PKGS/xpath &> /dev/null
     msg -n "Installing package -> $* "
-    # wrapcommand sudo xbps-install -S --repository=$VOID_HOSTDIR/$xpath "$@"
     wrapcommand xi "$@"
   ;;
 
@@ -606,6 +582,11 @@ case "$cmd" in
   ;;
 
   xinstall|xi)
+    if (($# < 1)); then
+      rmsg 255 "ERROR: install: argument missing, try --help."
+      exit 1
+    fi
+
     msg -n "Install $* package "
     wrapcommand xi "$@"
   ;;
