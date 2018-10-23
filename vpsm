@@ -166,7 +166,7 @@ banner () {
 
   printf " \ V / '_ (_-< '  \ "
   echo -n "$colorgray"
-  echo "  $progname - void package source management utility for XBPS-SRC"
+  echo "  $progname - void-packages sources management wrapper for XBPS-SRC"
   echo -n "$colorlogo"
   echo -n '  \_/| .__/__/_|_|_|'
   echo -n "$colorgray"
