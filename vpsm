@@ -221,9 +221,12 @@ usage () {
 
   echo "add-changes (ac) <file>                       - Add work changes in your clone repository."
   echo "add-remote-repo (arr) <remote-name> <url>     - Add new remote repo in your clone repository."
-  echo "checkout-branch (cb) <branch-name>            - Switch branch."
+  echo "checkout-branch (co) <branch-name>            - Switch branch."
   echo "commit-changes (cc) <message>                 - Commits changes added."
+  echo "create-branch (cb) <branch-name>              - Create a new branch."
+  echo "delete-branch (delb) <branch-name>            - Delete a existing branch."
   echo "pull (pp) <remote-repo> <branch>              - Pull commit from <remote-repo> <remote-branch>."
+  echo "pull-request (pr) [message]                   - Create a pull-request [optional message]."
   echo "push-commit (pc) <remote-repo> <branch>       - Push commits to <romote-repo> <remote-branch>."
   echo "update-repo (upr)                             - Pull commits from void-linux official repo."
   echo
@@ -237,6 +240,7 @@ usage () {
   echo "build-environment                             - Configure environment to create binary packages."
   echo "edit-template (et) <pkgname>                  - Edit <pkgname> template."
   echo "install (i) <pkgname>                         - Build binary package for <pkgname> and all required dependencies and install."
+  echo "lint (li) <pkgname>                           - Scan XBPS <pkgname> template for common mistakes."
   echo "list (l)                                      - Lists installed packages in <masterdir>."
   echo "pkg <pkgname>                                 - Only build binary package for <pkgname> and all required dependencies."
   echo "purge-distfiles (pdistf)                      - Removes all obsolete distfiles in <hostdir>/sources."
@@ -250,6 +254,7 @@ usage () {
   echo "update-check (upc) <pkgname>                  - Check upstream site of <pkgname> for new releases."
   echo "update-sys (ups)                              - Rebuilds packages in system and updates them."
   echo "xgsum <pkgname>                               - Generate SHA256 for <pkgname> template."
+  echo "xinstall (xi) <pkgname>                       - Like xbps-install -S <pkgname>, but take cwd repo and sudo/su into account."
 	echo
 	echo -n "$colorreset"
 }
@@ -439,8 +444,9 @@ case "$cmd" in
   ;;
 
   pull-request|pr)
+    ! [ -z "$1" ] && m=$@ || m=$(git log -1 --pretty=%B)
     msg -n "Create a pull-request "
-    wrapcommand git pull-request -m $(git log -1 --pretty=%B)
+    wrapcommand git pull-request -m $m
   ;;
 
   push-commit|pc)
