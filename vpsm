@@ -255,8 +255,8 @@ usage () {
   echo "update-sys (ups)                              - Rebuilds packages in system and updates them."
   echo "xgsum <pkgname>                               - Generate SHA256 for <pkgname> template."
   echo "xinstall (xi) <pkgname>                       - Like xbps-install -S <pkgname>, but take cwd repo and sudo/su into account."
-	echo
-	echo -n "$colorreset"
+  echo
+  echo -n "$colorreset"
 }
 
 setcolors auto
