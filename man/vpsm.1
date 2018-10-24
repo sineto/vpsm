@@ -52,6 +52,10 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
   Delete a existing branch.
 
 .PP
+\fBlist\-branches, lb\fP
+  List all branches.
+
+.PP
 \fBpull, pp\fP \fI<remote> <branch>\fP
   Pull commit from \fB\fC<remote> <branch>\fR\&.
 
@@ -96,6 +100,10 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
 .PP
 \fBlist, l\fP
   Lists installed packages in \fB\fC<masterdir>\fR\&.
+
+.PP
+\fBnew, n\fP \fI<pkgname>\fP
+  Create a new \fB\fC<pkgname>\fR package.
 
 .PP
 \fBpkg\fP \fI<pkgname>\fP
@@ -154,7 +162,7 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
 .SH ENVIRONMENT
 .PP
 \fBXBPS\_DISTDIR\fP
-  The void\-packages repository directory path  passed to the \fBvpsm\fP
+  The void\-packages repository directory path passed to the \fBvpsm\fP
   command.
 
 .SH BUGS

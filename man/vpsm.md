@@ -52,6 +52,9 @@ GIT SUBCOMMANDS
 **delete-branch, delb** *<branch>*
   Delete a existing branch.
 
+**list-branches, lb**
+  List all branches.
+
 **pull, pp** *<remote> <branch>*
   Pull commit from `<remote> <branch>`.
 
@@ -88,6 +91,9 @@ XBPS-SRC SUBCOMMANDS
 
 **list, l**
   Lists installed packages in `<masterdir>`.
+
+**new, n** *<pkgname>*
+  Create a new `<pkgname>` package.
 
 **pkg** *<pkgname>*
   Only build binary package for `<pkgname>` and all required 

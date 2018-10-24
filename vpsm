@@ -225,6 +225,7 @@ usage () {
   echo "commit-changes (cc) <message>                 - Commits changes added."
   echo "create-branch (cb) <branch-name>              - Create a new branch."
   echo "delete-branch (delb) <branch-name>            - Delete a existing branch."
+  echo "list-branches (lb)                            - List all branches."
   echo "pull (pp) <remote-repo> <branch>              - Pull commit from <remote-repo> <remote-branch>."
   echo "pull-request (pr) [message]                   - Create a pull-request [optional message]."
   echo "push-commit (pc) <remote-repo> <branch>       - Push commits to <romote-repo> <remote-branch>."
@@ -242,6 +243,7 @@ usage () {
   echo "install (i) <pkgname>                         - Build binary package for <pkgname> and all required dependencies and install."
   echo "lint (li) <pkgname>                           - Scan XBPS <pkgname> template for common mistakes."
   echo "list (l)                                      - Lists installed packages in <masterdir>."
+  echo "new (n) <pkgname>                             - Create a new <pkgname> package."
   echo "pkg <pkgname>                                 - Only build binary package for <pkgname> and all required dependencies."
   echo "purge-distfiles (pdistf)                      - Removes all obsolete distfiles in <hostdir>/sources."
   echo "searchbin (sb) <pkgname>                      - Search in <hostdir>/binpkgs for package by <name> (use xbps-query). "
@@ -423,7 +425,7 @@ case "$cmd" in
     wrapcommand git branch -d "$@"
   ;;
 
-  list-branchs|lb)
+  list-branches|lb)
     msg -n "Listing all branchs"
     wrapcommand git branch -lv
   ;;
