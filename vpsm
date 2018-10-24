@@ -440,10 +440,9 @@ case "$cmd" in
   ;;
 
   pull-request|pr)
-    ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)"
+    ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)";
     msg -n "Create a pull-request "
-    git push -u $(void_linux_remote) $(current_branch)
-    wrapcommand hub pull-request -m "$m"
+    wrapcommand hub pull-request -m "$m" -b void-linux:master
   ;;
 
   push-commit|pc)
