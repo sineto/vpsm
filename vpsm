@@ -423,6 +423,11 @@ case "$cmd" in
     wrapcommand git branch -d "$@"
   ;;
 
+  list-branchs|lb)
+    msg -n "Listing all branchs"
+    wrapcommand git branch -lv
+  ;;
+
   pull|pp)
     msg -n "Pull commits from: repo->$1, branch->$2 "
     wrapcommand git pull --rebase "$@"
@@ -508,6 +513,11 @@ case "$cmd" in
   list|l)
     msg -n "Lists installed packages "
     wrapcommand ./xbps-src list
+  ;;
+
+  new|n)
+    msg -n "Creating a new package -> $* "
+    wrapcommand xnew "$@"
   ;;
 
   pkg)
