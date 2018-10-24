@@ -13,15 +13,15 @@ Strongly inspired by [vpm][3] (originally created by [Armin Jenewein][4]) and [v
 * xtools
 
 ## Instalation
-### 0.  Fork Void Linux’s void-packages repository
+### 0. Fork Void Linux’s void-packages repository
 ### 1. Clone the void-packages repository forked
 On my enviroment I like keep it inside my `$HOME` path
 ```bash
 $ git clone git@github.com:my-github-username/void-packages.git ~/.void-packages
 ```
 
-### 2 . export `XBPS_DISTDIR`
-Export in your `.bashrc` or `.zshrc`, or any other _rc_ file what you want file, the `XBPS_DISTDIR=/path/to/void-packages/`.
+### 2. export `XBPS_DISTDIR`
+Export in your `.bashrc` or `.zshrc`, or any other _rc_ file what you want, the `XBPS_DISTDIR=/path/to/void-packages/`.
 ```bash
 $ echo "export XBPS_DISTDIR=$HOME/.void-packages" >> ~/.zshrc
 ```
@@ -30,18 +30,31 @@ $ echo "export XBPS_DISTDIR=$HOME/.void-packages" >> ~/.zshrc
 ```bash
 $ git clone https://github.com/sinetoami/vpsm.git
 ```
+
 ### 4. Add the `vspm` executable to `PATH`
 For example, exporting inside `.zshrc` file
 ```bash
 export PATH=$PATH:/path/to/vpsm/directory
 ```
-I like to create a hidden  `.bin` directory on my `$HOME` path to and add it to `$PATH` var and move/copy/link the `vpsm` executable. But you can do it any way you like.
+I like to create a hidden  `.bin` directory on my `$HOME` path and add it to `$PATH` var, move/copy/link the `vpsm` executable. But you can do it any way you like.
 ```bash
 $ mkdir ~/.bin
 $ git clone https://github.com/sinetoami/vpsm.git ~/vpsm
 $ cd vpsm
 $ ln -s ~/vpsm/vpsm ~/.bin/
 $ echo "export PATH=$PATH:$HOME/.bin" >> ~/.zshrc
+```
+
+### 5. Installation using Makefile
+Before installing using this method, you need to know two things:
+* The default `PREFIX` path is set to `/usr/local` - you can change it.
+* If you changes the `PREFIX`, make sure it's in the `PATH`.
+```bash
+$ sudo make install
+
+or
+
+$ sudo make install PREFIX=/new/path
 ```
 
 ## Usage
