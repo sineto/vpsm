@@ -438,7 +438,7 @@ case "$cmd" in
   pull-request|pr)
     ! [ -z "$1" ] && m=$@ || m=$(git log -1 --pretty=%B)
     msg -n "Create a pull-request "
-    wrapcommand git pull-request -m $m
+    wrapcommand hub pull-request -m $m
   ;;
 
   push-commit|pc)
