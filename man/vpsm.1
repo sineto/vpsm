@@ -1,0 +1,175 @@
+.TH VPSM 1 "OCTUBER 2018" Linux "User Manuals"
+.SH NAME
+.PP
+vpsm \- void\-packages sources management wrapper for xbps\-src.
+
+.SH SYNOPSIS
+.PP
+\fBvpsm\fP [\fIOPTIONS\fP] [\fISUBCOMMANDS\fP] [\fI<ARGS>\fP]
+
+.SH DESCRIPTION
+.PP
+\fBvpsm\fP was made specifically for Void Linux. Is a simple wrapper for \fBxbps\-src\fP commands that allows handling binary packages sources, query, smooth the workflow of the creation of new packages \- and a little more. Also used to substitute some commands from \fBxtools\fP(1) collection utilities.
+
+.SH OPTIONS
+.PP
+\fB\-\-color=\fP\fI<yes|no|auto>\fP
+  Enable/Disable colorized output (default: auto)
+
+.PP
+\fB\-\-help\fP
+  (same as: help).
+
+.PP
+\fB\-\-help\-pager\fP
+  (same as: helppager).
+
+.SH GIT SUBCOMMANDS
+.PP
+\fBadd\-changes, ac\fP \fI[file]\fP
+  Add worked changes to the cloned repository \- more details
+  \fBgit\-add\fP(1).
+
+.PP
+\fBadd\-remote\-repo, arr\fP \fI<remote-name> <url>\fP
+  Add new remote repository to the cloned repository.
+
+.PP
+\fBcheckout\-branch, co\fP \fI<branch>\fP
+  Switch branch.
+
+.PP
+\fBcommit\-changes, cc\fP
+  Commits changes added \- the message will be something like "New
+  package: my\-package\-name\-0.1\_1".
+
+.PP
+\fBcreate\-branch, cb\fP \fI<branch>\fP
+  Create a new branch.
+
+.PP
+\fBdelete\-branch, delb\fP \fI<branch>\fP
+  Delete a existing branch.
+
+.PP
+\fBpull, pp\fP \fI<remote> <branch>\fP
+  Pull commit from \fB\fC<remote> <branch>\fR\&.
+
+.PP
+\fBpull\-request, pr\fP \fI[message]\fP
+  Create a pull\-request \- [optional message].
+
+.PP
+\fBpush\-commit, pc\fP \fI<remote> <branch>\fP
+  Push commits to \fB\fC<remote> <branch>\fR\&.
+
+.PP
+\fBupdate\-repo, upr\fP
+  Pull commits from Void Linux's void\-packages repository.
+
+.SH XBPS\-SRC SUBCOMMANDS
+.PP
+\fBbinbootstrap, bb\fP
+  Install bootstrap packages from host repositories into \fB\fC<masterdir>\fR\&.
+
+.PP
+\fBbootstrap\-up, bu\fP
+  Updates bootstrap packages.
+
+.PP
+\fBbuild\-environment\fP
+  Configure environment to create binary packages.
+
+.PP
+\fBedit\-template, et\fP \fI<pkgname>\fP
+  Edit \fB\fC<pkgname>\fR template.
+
+.PP
+\fBinstall, i\fP \fI<pkgname>\fP
+  Build binary package for \fB\fC<pkgname>\fR, all required dependencies and
+  install.
+
+.PP
+\fBlint, li\fP \fI<pkgname>\fP
+  Scan XBPS \fB\fC<pkgname>\fR template for common mistakes.
+
+.PP
+\fBlist, l\fP
+  Lists installed packages in \fB\fC<masterdir>\fR\&.
+
+.PP
+\fBpkg\fP \fI<pkgname>\fP
+  Only build binary package for \fB\fC<pkgname>\fR and all required
+  dependencies.
+
+.PP
+\fBpurge\-distfiles, pdistf\fP
+  Removes all obsolete distfiles in \fB\fC<hostdir>/sources\fR\&.
+
+.PP
+\fBsearchbin, sb\fP \fI<pkgname>\fP
+  Search in \fB\fC<hostdir>/binpkgs\fR for package by \fB\fC<name>\fR \- use xbps\-query.
+
+.PP
+\fBsearchsrc, ss\fP \fI<pkgname>\fP
+  Search in \fB\fC<srcpkgs>\fR for package by \fB\fC<name>\fR\&.
+
+.PP
+\fBshow, sw\fP \fI<pkgname>\fP
+  Show information for the specified package.
+
+.PP
+\fBshow\-build\-deps, bdeps\fP \fI<pkgname>\fP
+  Show required build dependencies for \fB\fC<pkgname>\fR\&.
+
+.PP
+\fBshow\-deps, rdeps\fP \fI<pkgname>\fP
+  Show required run\-time dependencies for \fB\fC<pkgname>\fR\&.
+
+.PP
+\fBuninstall, un\fP \fI<pkgname>\fP
+  Uninstall and purge distfiles for \fB\fC<pkgname>\fR\&.
+
+.PP
+\fBupdate\-bulk, upb\fP
+  Rebuilds all packages in the system repositories that are outdated.
+
+.PP
+\fBupdate\-check, upc\fP \fI<pkgname>\fP
+  Check upstream site of \fB\fC<pkgname>\fR for new releases.
+
+.PP
+\fBupdate\-sys, ups\fP
+  Rebuilds packages in system and updates them.
+
+.PP
+\fBxgsum\fP \fI<pkgname>\fP
+  Generate SHA256 for \fB\fC<pkgname>\fR template.
+
+.PP
+\fBxinstall, xi\fP \fI<pkgname>\fP
+  Like xbps\-install \-S \fB\fC<pkgname>\fR, but take cwd repo and sudo/su into
+  account.
+
+.SH ENVIRONMENT
+.PP
+\fBXBPS\_DISTDIR\fP
+  The void\-packages repository directory path  passed to the \fBvpsm\fP
+  command.
+
+.SH BUGS
+.PP
+All bugs should be reported to 
+\[la]https://github.com/sinetoami/vpsm\[ra]
+
+.SH AUTHOR
+.PP
+\fB\fCSinésio Neto <sinetoami> <sinetoami@gmail.com>\fR
+
+.SH SEE ALSO
+.PP
+\fBxtools\fP(1), \fBgit\-add\fP(1)
+
+.SH SEE ALSO
+.PP
+MIT License
