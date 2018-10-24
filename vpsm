@@ -295,6 +295,10 @@ template_path() {
   echo "$VOID_PKGS/srcpkgs/$1/template"
 }
 
+void_linux_remote() {
+  git remote -v | rg void-linux/void-packages | awk '{print $1}' | head -1
+}
+
 longest_word () {
   declare -a pkgs=$@
   declare -i longest=0
@@ -436,9 +440,10 @@ case "$cmd" in
   ;;
 
   pull-request|pr)
-    ! [ -z "$1" ] && m=$@ || m=$(git log -1 --pretty=%B)
+    ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)"
     msg -n "Create a pull-request "
-    wrapcommand hub pull-request -m $m
+    git push -u $(void_linux_remote) $(current_branch)
+    wrapcommand hub pull-request -m "$m"
   ;;
 
   push-commit|pc)
@@ -447,7 +452,7 @@ case "$cmd" in
   ;;
 
   update-repo|upr)
-    lrepo=$(git remote -v | rg void-linux/void-packages | awk '{print $1}' | head -1)
+    lrepo=$(void_linux_remote)
     msg "Pull commits from void-linux official repo->$lrepo "
     git checkout master
     git pull --rebase $lrepo master
