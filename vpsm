@@ -226,6 +226,7 @@ usage () {
   echo "create-branch (cb) <branch-name>              - Create a new branch."
   echo "delete-branch (delb) <branch-name>            - Delete a existing branch."
   echo "list-branches (lb)                            - List all branches."
+  echo "log (lg) <pkgname>                            - Commit log for <pkgname> XBPS template"
   echo "pull (pp) <remote-repo> <branch>              - Pull commit from <remote-repo> <remote-branch>."
   echo "pull-request (pr) [message]                   - Create a pull-request [optional message]."
   echo "push-commit (pc) <remote-repo> <branch>       - Push commits to <romote-repo> <remote-branch>."
@@ -243,6 +244,7 @@ usage () {
   echo "install (i) <pkgname>                         - Build binary package for <pkgname> and all required dependencies and install."
   echo "lint (li) <pkgname>                           - Scan XBPS <pkgname> template for common mistakes."
   echo "list (l)                                      - Lists installed packages in <masterdir>."
+  echo "mypkgs (mp) [email]                           - List all pkgs maintained by you or by [optional email]."
   echo "new (n) <pkgname>                             - Create a new <pkgname> package."
   echo "pkg <pkgname>                                 - Only build binary package for <pkgname> and all required dependencies."
   echo "purge-distfiles (pdistf)                      - Removes all obsolete distfiles in <hostdir>/sources."
@@ -293,6 +295,17 @@ esac
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 template_path() {
   echo "$VOID_PKGS/srcpkgs/$1/template"
+}
+
+
+git_owner_name() {
+  url="$(git config --get remote.origin.url)"
+  re="^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+
+  if [[ $url =~ $re ]]; then
+    user=${BASH_REMATCH[4]}
+  fi
+  echo "$user"
 }
 
 void_linux_remote() {
@@ -434,15 +447,23 @@ case "$cmd" in
     wrapcommand git branch -lv
   ;;
 
+  log|lg)
+    msg -n "Commit log of $* template "
+    wrapcommand xlg "$@"
+  ;;
+
   pull|pp)
     msg -n "Pull commits from: repo->$1, branch->$2 "
     wrapcommand git pull --rebase "$@"
   ;;
 
   pull-request|pr)
-    ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)";
+    ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)"
+    ownername=$(git_owner_name)
+    currbranch=$(current_branch)
+
     msg -n "Create a pull-request "
-    wrapcommand hub pull-request -m "$m" -b void-linux:master
+    wrapcommand hub pull-request -m "$m" -b void-linux:master -h "$ownername:$currbranch"
   ;;
 
   push-commit|pc)
@@ -519,6 +540,12 @@ case "$cmd" in
   list|l)
     msg -n "Lists installed packages "
     wrapcommand ./xbps-src list
+  ;;
+
+  mypkgs|mp)
+    ownername=$(git_owner_name)
+    msg -n "Listing packages of $ownername "
+    wrapcommand xmypkgs
   ;;
 
   new|n)
