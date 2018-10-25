@@ -1,4 +1,5 @@
 PREFIX ?= /usr/local
+DESTDIR=
 
 .PHONY: all
 all:
@@ -15,8 +16,8 @@ clean:
 
 .PHONY: install
 install:
-	cp vpsm $(PREFIX)/bin/vpsm
-	cp man/vpsm.1 $(PREFIX)/share/man/man1/vpsm.1
+	install -Dm4755 vpsm $(DESTDIR)$(PREFIX)/bin/vpsm
+	install -Dm644 man/vpsm.1 $(DESTDIR)/$(PREFIX)/share/man/man1/vpsm.1
 
 .PHONY: uninstall
 uninstall:
