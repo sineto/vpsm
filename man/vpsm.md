@@ -92,6 +92,13 @@ XBPS-SRC SUBCOMMANDS
 **list, l**
   Lists installed packages in `<masterdir>`.
 
+**log, lg** *<pkgname>*
+  Commit log for `<pkgname>` XBPS template.
+
+**mypkgs, mp** *[email]*
+  List all pkgs maintained by the owner repository.
+  Pass a [email] to list pkgs maintained by other owner than yourself.
+
 **new, n** *<pkgname>*
   Create a new `<pkgname>` package.
 
@@ -103,7 +110,7 @@ XBPS-SRC SUBCOMMANDS
   Removes all obsolete distfiles in `<hostdir>/sources`.
 
 **searchbin, sb** *<pkgname>*
-  Search in `<hostdir>/binpkgs` for package by `<name>` - use xbps-query.
+  Search in `<hostdir>/binpkgs` for package by `<name>` - use **xbps-query**(1).
 
 **searchsrc, ss** *<pkgname>*
   Search in `<srcpkgs>` for package by `<name>`.
@@ -130,7 +137,7 @@ XBPS-SRC SUBCOMMANDS
   Rebuilds packages in system and updates them.
 
 **xgsum** *<pkgname>*
-  Generate SHA256 for `<pkgname>` template.
+  Generate SHA256 for `<pkgname>` template - more details **xtools**(1).
 
 **xinstall, xi** *<pkgname>*
   Like xbps-install -S `<pkgname>`, but take cwd repo and sudo/su into 
@@ -156,7 +163,7 @@ AUTHOR
 SEE ALSO
 --------
 
-**xtools**(1), **git-add**(1)
+**xtools**(1), **git-add**(1), **xbps-query**(1)
 
 SEE ALSO
 --------

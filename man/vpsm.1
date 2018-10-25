@@ -102,6 +102,15 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
   Lists installed packages in \fB\fC<masterdir>\fR\&.
 
 .PP
+\fBlog, lg\fP \fI<pkgname>\fP
+  Commit log for \fB\fC<pkgname>\fR XBPS template.
+
+.PP
+\fBmypkgs, mp\fP \fI[email]\fP
+  List all pkgs maintained by the owner repository.
+  Pass a [email] to list pkgs maintained by other owner than yourself.
+
+.PP
 \fBnew, n\fP \fI<pkgname>\fP
   Create a new \fB\fC<pkgname>\fR package.
 
@@ -152,7 +161,7 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
 
 .PP
 \fBxgsum\fP \fI<pkgname>\fP
-  Generate SHA256 for \fB\fC<pkgname>\fR template.
+  Generate SHA256 for \fB\fC<pkgname>\fR template \- more details \fBxtools\fP(1).
 
 .PP
 \fBxinstall, xi\fP \fI<pkgname>\fP
