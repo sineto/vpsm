@@ -460,10 +460,9 @@ case "$cmd" in
   pull-request|pr)
     ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)"
     ownername=$(git_owner_name)
-    currbranch=$(current_branch)
 
     msg -n "Create a pull-request "
-    wrapcommand hub pull-request -m "$m" -b void-linux:master -h "$ownername:$currbranch"
+    wrapcommand hub pull-request -m "$m" -b void-linux:master -h "$ownername:$current_branch"
   ;;
 
   push-commit|pc)
