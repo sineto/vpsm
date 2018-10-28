@@ -413,12 +413,12 @@ case "$cmd" in
 # --------------------------------------------------------------------------------------------
 # GIT OPTIONS
   add-changes|ac)
-    msg -n "Add changes -> $* "
+    msg -n "Add changes $* "
     wrapcommand git add "$@"
   ;;
 
   add-remote-repo|arr)
-    msg -n "Add new remote repo -> $* "
+    msg -n "Add new remote repo $* "
     wrapcommand git remote add "$@"
   ;;
 
@@ -452,6 +452,11 @@ case "$cmd" in
     wrapcommand xlg "$@"
   ;;
 
+  log-graph|lgg)
+    git log --all --graph --date=short \
+      --pretty=format:'%C(auto)%h%C(auto)%d %s %C(dim white)(%aN, %ar, %cd)'
+  ;;
+
   pull|pp)
     msg -n "Pull commits from: repo->$1, branch->$2 "
     wrapcommand git pull --rebase "$@"
@@ -460,9 +465,9 @@ case "$cmd" in
   pull-request|pr)
     ! [ -z "$1" ] && m="$*" || m="$(git log -1 --pretty=%B)"
     ownername=$(git_owner_name)
-
+    lrepo=$(void_linux_remote)
     msg -n "Create a pull-request "
-    wrapcommand hub pull-request -m "$m" -b void-linux:master -h "$ownername:$current_branch"
+    wrapcommand hub pull-request -m "$m" -b "$lrepo:master" -h "$ownername:$current_branch"
   ;;
 
   push-commit|pc)
@@ -472,9 +477,10 @@ case "$cmd" in
 
   update-repo|upr)
     lrepo=$(void_linux_remote)
-    msg "Pull commits from void-linux official repo->$lrepo "
+    msg "Pull commits from Void Linux's void-packages: remote-name -> $lrepo "
     git checkout master
     git pull --rebase $lrepo master
+    git push -u origin master
     ./xbps-src bootstrap-update
   ;;
 
@@ -494,7 +500,7 @@ case "$cmd" in
 	build-environment)
     whoami=$(whoami)
 
-    msg "XBPS_CHROOT_CMD=uchroot >> etc/conf "
+    msg "Setting up XBPS_CHROOT_CMD=uchroot "
     echo XBPS_CHROOT_CMD=uchroot >> etc/conf
 
     cd /usr/bin
@@ -505,11 +511,11 @@ case "$cmd" in
     msg "usermod -a -G xbuilder $whoami"
     sudo usermod -a -G xbuilder $whoami
 
-    cd $OLDPWD
-    msg "add void-linux/void-packages track repository "
-    git remote add void-linux git://github.com/void-linux/void-packages.git
-    msg "git pull void-linux master "
-    git pull --rebase void-linux master
+    # cd $OLDPWD
+    # msg "add void-linux/void-packages track repository "
+    # git remote add void-linux git://github.com/void-linux/void-packages.git
+    # msg "git pull void-linux master "
+    # git pull --rebase void-linux master
 	;;
 
   edit-template|et)
@@ -583,7 +589,7 @@ case "$cmd" in
     wrapcommand ./xbps-src show-build-deps "$@"
   ;;
 
-  show-deps|deps)
+  show-deps|rdeps)
     msg -n "Show required run-time dependencies -> $* "
     wrapcommand ./xbps-src show-deps "$@"
   ;;
