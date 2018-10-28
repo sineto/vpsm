@@ -55,6 +55,12 @@ GIT SUBCOMMANDS
 **list-branches, lb**
   List all branches.
 
+**log, lg** *<pkgname>*
+  Commit log for `<pkgname>` XBPS template
+
+**log-graph, lgg**
+  Commit graph for all commits and branches
+
 **pull, pp** *<remote> <branch>*
   Pull commit from `<remote> <branch>`.
 

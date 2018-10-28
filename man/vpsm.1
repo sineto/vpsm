@@ -56,6 +56,14 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
   List all branches.
 
 .PP
+\fBlog, lg\fP \fI<pkgname>\fP
+  Commit log for \fB\fC<pkgname>\fR XBPS template
+
+.PP
+\fBlog\-graph, lgg\fP
+  Commit graph for all commits and branches
+
+.PP
 \fBpull, pp\fP \fI<remote> <branch>\fP
   Pull commit from \fB\fC<remote> <branch>\fR\&.
 
@@ -125,7 +133,7 @@ vpsm \- void\-packages sources management wrapper for xbps\-src.
 
 .PP
 \fBsearchbin, sb\fP \fI<pkgname>\fP
-  Search in \fB\fC<hostdir>/binpkgs\fR for package by \fB\fC<name>\fR \- use xbps\-query.
+  Search in \fB\fC<hostdir>/binpkgs\fR for package by \fB\fC<name>\fR \- use \fBxbps\-query\fP(1).
 
 .PP
 \fBsearchsrc, ss\fP \fI<pkgname>\fP
@@ -185,7 +193,7 @@ All bugs should be reported to
 
 .SH SEE ALSO
 .PP
-\fBxtools\fP(1), \fBgit\-add\fP(1)
+\fBxtools\fP(1), \fBgit\-add\fP(1), \fBxbps\-query\fP(1)
 
 .SH SEE ALSO
 .PP

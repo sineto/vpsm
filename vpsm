@@ -227,6 +227,7 @@ usage () {
   echo "delete-branch (delb) <branch-name>            - Delete a existing branch."
   echo "list-branches (lb)                            - List all branches."
   echo "log (lg) <pkgname>                            - Commit log for <pkgname> XBPS template"
+  echo "log-graph (lgg)                               - Commit graph log for all commits"
   echo "pull (pp) <remote-repo> <branch>              - Pull commit from <remote-repo> <remote-branch>."
   echo "pull-request (pr) [message]                   - Create a pull-request [optional message]."
   echo "push-commit (pc) <remote-repo> <branch>       - Push commits to <romote-repo> <remote-branch>."
