@@ -45,7 +45,7 @@ $ ln -s ~/vpsm/vpsm ~/.bin/
 $ echo "export PATH=$PATH:$HOME/.bin" >> ~/.zshrc
 ```
 
-### 5. Installation using Makefile
+## Installation using Makefile
 Before installing using this method, you need to know two things:
 * The default `PREFIX` path is set to `/usr/local` - you can change it.
 * If you changes the `PREFIX`, make sure it's in the `PATH`.
