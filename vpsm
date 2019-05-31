@@ -412,7 +412,7 @@ shift
 
 case "$cmd" in
 # --------------------------------------------------------------------------------------------
-# GIT OPTIONS
+#GIT OPTIONS
   add-changes|ac)
     msg -n "Add changes $* "
     wrapcommand git add "$@"
