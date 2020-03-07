@@ -112,6 +112,17 @@ rmsg () {
 
 
 # --------------------------------------------------------------------------------------------
+SUDO=
+if command -v sudo >/dev/null; then
+    SUDO=sudo
+elif command -v doas >/dev/null && [ -f /etc/doas.conf ]; then
+    SUDO=doas
+elif [ "$(whoami)" != root ]; then
+    SUDO='su root -c '\''"$@"'\'' -- -'
+fi
+
+
+# --------------------------------------------------------------------------------------------
 
 setcolors on
 logo=$(getlogo)
@@ -138,7 +149,7 @@ elif ! [ -d $distdir ]; then
   msg "Cloned!"
 
   msg "Install xtools utility "
-  sudo xbps-install xtools
+  $SUDO xbps-install xtools
 
   exit
 else
@@ -259,7 +270,7 @@ usage () {
   echo "update-check (upc) <pkgname>                  - Check upstream site of <pkgname> for new releases."
   echo "update-sys (ups)                              - Rebuilds packages in system and updates them."
   echo "xgsum <pkgname>                               - Generate SHA256 for <pkgname> template."
-  echo "xinstall (xi) <pkgname>                       - Like xbps-install -S <pkgname>, but take cwd repo and sudo/su into account."
+  echo "xinstall (xi) <pkgname>                       - Like xbps-install -S <pkgname>, but take cwd repo and sudo/doas/su into account."
   echo
   echo -n "$colorreset"
 }
@@ -506,11 +517,11 @@ case "$cmd" in
 
     cd /usr/bin
     msg "chown root:xbuilder xbps-uchroot "
-    sudo chown root:xbuilder xbps-uchroot
+    $SUDO chown root:xbuilder xbps-uchroot
     msg "chmod 4750 xbps-uchroot"
-    sudo chmod 4750 xbps-uchroot
+    $SUDO chmod 4750 xbps-uchroot
     msg "usermod -a -G xbuilder $whoami"
-    sudo usermod -a -G xbuilder $whoami
+    $SUDO usermod -a -G xbuilder $whoami
 
     # cd $OLDPWD
     # msg "add void-linux/void-packages track repository "
@@ -604,7 +615,7 @@ case "$cmd" in
     shopt -s globstar
 
     msg "Remove package and purge distfiles -> $* "
-    sudo xbps-remove -v -R "$@"
+    $SUDO xbps-remove -v -R "$@"
     rm -rf $VOID_BINPKGS/**/*$@*
 
     shopt -u globstar
