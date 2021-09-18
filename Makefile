@@ -16,7 +16,7 @@ clean:
 
 .PHONY: install
 install:
-	install -Dm4755 vpsm $(DESTDIR)$(PREFIX)/bin/vpsm
+	install -Dm755 vpsm $(DESTDIR)$(PREFIX)/bin/vpsm
 	install -Dm644 man/vpsm.1 $(DESTDIR)/$(PREFIX)/share/man/man1/vpsm.1
 
 .PHONY: uninstall
